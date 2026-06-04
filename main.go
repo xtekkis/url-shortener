@@ -6,7 +6,12 @@ import (
 	"net/http"
 )
 
-var links = make(map[string]string)
+type Link struct {
+	Original string
+	Clicks   int
+}
+
+var links = make(map[string]Link)
 
 func generateCode() string {
 	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -28,23 +33,34 @@ func shortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	code := generateCode()
-	links[code] = original
+	links[code] = Link{Original: original, Clicks: 0}
 	fmt.Fprintf(w, "Short URL: http://localhost:8080/r/%s\n", code)
 }
 
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Path[len("/r/"):]
-	original, exists := links[code]
+	link, exists := links[code]
 	if !exists {
 		http.Error(w, "Link not found", http.StatusNotFound)
 		return
 	}
-	http.Redirect(w, r, original, http.StatusFound)
+	link.Clicks++
+	links[code] = link
+	http.Redirect(w, r, link.Original, http.StatusFound)
+}
+
+func statsHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%-10s %-50s %s\n", "Code", "Original URL", "Clicks")
+	fmt.Fprintf(w, "%s\n", "--------------------------------------------------------------")
+	for code, link := range links {
+		fmt.Fprintf(w, "%-10s %-50s %d\n", code, link.Original, link.Clicks)
+	}
 }
 
 func main() {
 	http.HandleFunc("/shorten", shortenHandler)
 	http.HandleFunc("/r/", redirectHandler)
+	http.HandleFunc("/stats", statsHandler)
 	fmt.Println("URL Shortener running on http://localhost:8080")
 	http.ListenAndServe(":8080", nil)
 }
