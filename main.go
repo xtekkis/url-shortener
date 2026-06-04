@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"time"
 )
 
 type Link struct {
-	Original string
-	Clicks   int
+	Original  string
+	Clicks    int
+	CreatedAt time.Time
 }
 
 var links = make(map[string]Link)
@@ -33,7 +35,7 @@ func shortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	code := generateCode()
-	links[code] = Link{Original: original, Clicks: 0}
+	links[code] = Link{Original: original, Clicks: 0, CreatedAt: time.Now()}
 	fmt.Fprintf(w, "Short URL: http://localhost:8080/r/%s\n", code)
 }
 
@@ -44,16 +46,21 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Link not found", http.StatusNotFound)
 		return
 	}
+	if time.Since(link.CreatedAt) > 24*time.Hour {
+		http.Error(w, "Link has expired", http.StatusGone)
+		return
+	}
 	link.Clicks++
 	links[code] = link
 	http.Redirect(w, r, link.Original, http.StatusFound)
 }
 
 func statsHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%-10s %-50s %s\n", "Code", "Original URL", "Clicks")
-	fmt.Fprintf(w, "%s\n", "--------------------------------------------------------------")
+	fmt.Fprintf(w, "%-10s %-50s %-10s %s\n", "Code", "Original URL", "Clicks", "Expires")
+	fmt.Fprintf(w, "%s\n", "---------------------------------------------------------------------------------------------")
 	for code, link := range links {
-		fmt.Fprintf(w, "%-10s %-50s %d\n", code, link.Original, link.Clicks)
+		expires := link.CreatedAt.Add(24 * time.Hour).Format("15:04:05")
+		fmt.Fprintf(w, "%-10s %-50s %-10d %s\n", code, link.Original, link.Clicks, expires)
 	}
 }
 
