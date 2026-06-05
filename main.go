@@ -69,5 +69,6 @@ func main() {
 	http.HandleFunc("/r/", redirectHandler)
 	http.HandleFunc("/stats", statsHandler)
 	fmt.Println("URL Shortener running on http://localhost:8080")
+	http.Handle("/", http.FileServer(http.Dir("static")))
 	http.ListenAndServe(":8080", nil)
 }
