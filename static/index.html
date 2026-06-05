@@ -3,32 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL Shortener</title>
+    <title>Link Shortener</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #0f0f0f; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { background: #1a1a1a; padding: 40px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.4); width: 100%; max-width: 500px; }
+        .container { background: #1a1a1a; padding: 40px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.4); width: 100%; max-width: 520px; }
         h1 { font-size: 24px; margin-bottom: 8px; color: #ffffff; }
-        p { color: #999; margin-bottom: 24px; }
-        input { width: 100%; padding: 12px; border: 1px solid #333; border-radius: 8px; font-size: 15px; margin-bottom: 12px; background: #2a2a2a; color: white; }
-        button { width: 100%; padding: 12px; background: #4f46e5; color: white; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; }
-        button:hover { background: #4338ca; }
-        .result { margin-top: 20px; padding: 14px; background: #2a2a2a; border-radius: 8px; display: none; color: #ccc; }
-        .result a { color: #4f46e5; text-decoration: none; font-weight: 500; }
-        .result a:hover { text-decoration: underline; }
-        .stats-link { display: block; text-align: center; margin-top: 16px; color: #999; font-size: 13px; text-decoration: none; }
+        p.subtitle { color: #999; margin-bottom: 24px; }
+        label { font-size: 13px; color: #999; margin-bottom: 6px; display: block; }
+        .input-row { display: flex; gap: 8px; margin-bottom: 16px; }
+        .input-row input { flex: 1; padding: 12px 16px; border: 1px solid #333; border-radius: 8px; font-size: 15px; background: #2a2a2a; color: white; }
+        .input-row input::placeholder { color: #666; }
+        .btn-primary { padding: 12px 20px; background: #4f46e5; color: white; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; white-space: nowrap; }
+        .btn-primary:hover { background: #4338ca; }
+        .btn-copy { padding: 12px 20px; background: #059669; color: white; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; white-space: nowrap; }
+        .btn-copy:hover { background: #047857; }
+        .result { display: none; margin-bottom: 16px; margin-top: 20px; }
+        .result-row { display: flex; gap: 8px; align-items: center; }
+        .short-link { flex: 1; padding: 12px 16px; border: 1px solid #333; border-radius: 8px; font-size: 15px; background: #2a2a2a; color: #818cf8; text-decoration: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .short-link:hover { text-decoration: underline; }
+        .copied { color: #4ade80; font-size: 13px; margin-top: 6px; display: none; }
+        .stats-link { display: block; text-align: center; margin-top: 24px; color: #999; font-size: 13px; text-decoration: none; }
         .stats-link:hover { color: #4f46e5; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>URL Shortener</h1>
-        <p>Paste a long URL and get a short one back.</p>
-        <input type="text" id="urlInput" placeholder="https://example.com" />
-        <button onclick="shorten()">Shorten</button>
-        <div class="result" id="result">
-            Short URL: <a id="shortUrl" href="#" target="_blank"></a>
+        <h1>Link Shortener</h1>
+        <p class="subtitle">Paste a long link and get a short one back.</p>
+
+        <label>Long Link</label>
+        <div class="input-row">
+            <input type="text" id="urlInput" placeholder="https://example.com" />
+            <button class="btn-primary" onclick="shorten()">Shorten Link</button>
         </div>
+
+        <div class="result" id="result">
+            <label>Short Link</label>
+            <div class="result-row">
+                <a id="shortUrl" class="short-link" href="#" target="_blank"></a>
+                <button class="btn-copy" onclick="copyUrl()">Copy Link</button>
+            </div>
+            <div class="copied" id="copied">✓ Copied to clipboard!</div>
+        </div>
+
         <a href="/stats" class="stats-link">View all links →</a>
     </div>
     <script>
@@ -42,6 +60,15 @@
             el.href = shortUrl;
             el.textContent = shortUrl;
             document.getElementById('result').style.display = 'block';
+            document.getElementById('copied').style.display = 'none';
+        }
+
+        function copyUrl() {
+            const el = document.getElementById('shortUrl');
+            navigator.clipboard.writeText(el.href);
+            const copied = document.getElementById('copied');
+            copied.style.display = 'block';
+            setTimeout(() => copied.style.display = 'none', 2000);
         }
     </script>
 </body>
