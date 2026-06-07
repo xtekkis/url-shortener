@@ -148,6 +148,13 @@
         .stats-link:hover {
             color: #4f46e5;
         }
+
+        .error {
+            color: #f87171;
+            font-size: 13px;
+            margin-bottom: 10px;
+            display: none;
+        }
     </style>
 </head>
 
@@ -157,6 +164,7 @@
         <p class="subtitle">Paste a long link and get a short one back.</p>
 
         <label>Long Link</label>
+        <div class="error" id="error">Please enter a valid URL starting with http:// or https://</div>
         <div class="input-row">
             <input type="text" id="urlInput" placeholder="https://example.com" />
             <button class="btn-primary" onclick="shorten()">Shorten Link</button>
@@ -175,10 +183,23 @@
     </div>
     <script>
         async function shorten() {
-            const url = document.getElementById('urlInput').value;
+            const url = document.getElementById('urlInput').value.trim();
             if (!url) return;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('result').style.display = 'none';
+                return;
+            }
+            document.getElementById('error').style.display = 'none';
             const res = await fetch('/shorten', { method: 'POST', body: new URLSearchParams({ url }) });
             const text = await res.text();
+            if (!res.ok) {
+                document.getElementById('error').textContent = text.trim();
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('result').style.display = 'none';
+                return;
+            }
+            document.getElementById('error').style.display = 'none';
             const shortUrl = text.replace('Short URL: ', '').trim();
             const el = document.getElementById('shortUrl');
             el.href = shortUrl;

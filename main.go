@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -36,6 +37,10 @@ func shortenHandler(w http.ResponseWriter, r *http.Request) {
 	original := r.FormValue("url")
 	if original == "" {
 		http.Error(w, "URL is required", http.StatusBadRequest)
+		return
+	}
+	if !strings.HasPrefix(original, "http://") && !strings.HasPrefix(original, "https://") {
+		http.Error(w, "Invalid URL, must start with http:// or https://", http.StatusBadRequest)
 		return
 	}
 	code := generateCode()
@@ -102,7 +107,7 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 		expires := link.CreatedAt.Add(2 * time.Hour).Format("15:04:05")
 		display := link.Original
 		if len(display) > 100 {
-    		display = display[:100] + "..."
+			display = display[:100] + "..."
 		}
 		fmt.Fprintf(w, `<tr>
             <td><a href="/r/%s" target="_blank">%s</a></td>
